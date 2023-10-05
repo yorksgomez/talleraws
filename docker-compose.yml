@@ -1,0 +1,87 @@
+version: '3'
+services:
+
+  # MongoDB container
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - my-network
+
+  # Spark application 1 (cliente y público)
+  spark-app1:
+    build:
+      context: ./tallercliente
+    ports:
+      - "35000:35000"
+    container_name: clienteweb
+    networks:
+      - my-network
+    depends_on:
+      - spark-app2
+      - spark-app3
+      - spark-app4
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/mydb
+
+  # Spark application 2 (servicio de Logs)
+  spark-app2:
+    build:
+      context: ./tallerlog
+    container_name: apilog1
+    ports:
+      - "35001:35000"
+    networks:
+      - my-network
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/mydb
+      
+  # Spark application 3 (servicio de Logs)
+  spark-app3:
+    build:
+      context: ./tallerlog
+    container_name: apilog2
+    ports:
+      - "35002:35000"
+    networks:
+      - my-network
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/mydb
+      
+  # Spark application 4 (servicio de Logs)
+  spark-app4:
+    build:
+      context: ./tallerlog
+    container_name: apilog3
+    ports:
+      - "35003:35000"
+    networks:
+      - my-network
+    depends_on:
+      - mongodb
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/mydb
+
+  # Spark application 4 (servicio de Logs)
+  front:
+    build:
+      context: ./web
+    container_name: front
+    ports:
+      - "35005:80"
+    networks:
+      - my-network
+    depends_on:
+      - spark-app1
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/mydb
+      
+
+networks:
+  my-network:
